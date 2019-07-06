@@ -13,12 +13,13 @@ function xk1 = chemostat_discrete_time(xk, uk, params, Ts)
     
     ffun = @(xk,uk) chemostat_derivatives_doub(xk, uk, params);
     fk = ffun(xk,uk);
-
+    
     % Extrapolation using xk1 = xk + Ts*fk is risky, since it might put xk1 in
     % an infeasible region, which could prevent convergence. A safer
     % alternative is xk1 = xk, but this method produces a poor estimate.
+    
     xk1 = xk + Ts*fk;
-
+    
     % Solve for xk1 satisfying the Trapezoidal rule.
     FUN = @(xk1) TrapezoidalRule(xk,xk1,uk,Ts,fk,ffun);
     Options = optimoptions('fsolve','Display','none');

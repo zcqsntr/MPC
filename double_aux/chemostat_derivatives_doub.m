@@ -1,4 +1,4 @@
-function dx = chemostat_derivatives_doub(x, u, params, is_measure)
+function dx = chemostat_derivatives_doub(x, u, params)
 % all derivatives exaclty the same as python implementation for the first
 % step of double auxotroph
     N = x(1:2);
@@ -18,7 +18,6 @@ function dx = chemostat_derivatives_doub(x, u, params, is_measure)
     %disp(u);disp(size(u));disp(size(C));disp(size(y));disp(size(growth_rates));disp(size(N));
        
     dC0 = q.*(C0in - C0) - sum(1./y3.*growth_rates.*N);
-    
     
     dx = [dN;dC;dC0];
     

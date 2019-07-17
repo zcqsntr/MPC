@@ -6,7 +6,7 @@ nu = 2; % number of inputs
 
 nlobj = nlmpc(nx,ny,nu);
 
-true_params = {1, 0.5, [480000., 480000.], [520000., 520000.], [0.6, 0.6], [0.00048776, 0.00000102115], [0.00006845928, 0.00006845928], [-0.0001, -0.0001; -0.0001, -0.0001]};
+true_params = {1, 0.5, [480000., 480000.], [520000., 520000.], [0.7, 0.6], [0.00048776, 0.00000102115], [0.00006845928, 0.00006845928], [-0.0001, -0.0001; -0.0001, -0.0001]};
 
 est_params = {1, 0.5, [480000., 480000.], [520000., 520000.], [0.6, 0.6], [0.00048776, 0.00000102115], [0.00006845928, 0.00006845928], [-0.0001, -0.0001; -0.0001, -0.0001]};
 
@@ -14,6 +14,7 @@ nlobj.Model.StateFcn = @(x,u) chemostat_derivatives_doub(x, u , est_params);
 nlobj.Model.OutputFcn = @(x,u) x(1:2); % add noise here if needed
 
 %nlobj_tracking.Jacobian.StateFcn = nlobj.Jacobian.StateFcn;
+
 
 Ts = 1/60;
 nlobj.Ts = Ts;
@@ -107,9 +108,9 @@ for k = 1:Tsteps
     % Update the real plant states for the next step by solving the
     % continuous-time ODEs based on current states xk and input uk.
     
-    if k > t0 && k < t0 + t_col
-        true_params{5}(1) = true_params{5}(1) + increase/t_col;
-    end
+%     if k > t0 && k < t0 + t_col
+%         true_params{5}(1) = true_params{5}(1) + increase/t_col;
+%     end
         
     ODEFUN = @(t,x) chemostat_derivatives_doub(x,uk, true_params);
     

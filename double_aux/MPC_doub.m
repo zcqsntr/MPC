@@ -6,9 +6,9 @@ nu = 2; % number of inputs
 
 nlobj = nlmpc(nx,ny,nu);
 
-true_params = {1, 0.5, [480000., 480000.], [520000., 520000.], [0.7, 0.6], [0.00048776, 0.00000102115], [0.00006845928, 0.00006845928], [-0.0001, -0.0001; -0.0001, -0.0001]};
+true_params = {1, 0.5, [480000., 480000.], [520000., 520000.], [0.6, 0.7], [0.00048776, 0.00000102115], [0.00006845928, 0.00006845928], [0.0, 0.0; 0.0, 0.0]};
 
-est_params = {1, 0.5, [480000., 480000.], [520000., 520000.], [0.6, 0.6], [0.00048776, 0.00000102115], [0.00006845928, 0.00006845928], [-0.0001, -0.0001; -0.0001, -0.0001]};
+est_params = {1, 0.5, [480000., 480000.], [520000., 520000.], [0.6, 0.7], [0.00048776, 0.00000102115], [0.00006845928, 0.00006845928], [0.0,0.0; 0.0, 0.0]};
 
 nlobj.Model.StateFcn = @(x,u) chemostat_derivatives_doub(x, u , est_params);
 nlobj.Model.OutputFcn = @(x,u) x(1:2); % add noise here if needed
@@ -16,7 +16,7 @@ nlobj.Model.OutputFcn = @(x,u) x(1:2); % add noise here if needed
 %nlobj_tracking.Jacobian.StateFcn = nlobj.Jacobian.StateFcn;
 
 
-Ts = 1/60;
+Ts = 60/60;
 nlobj.Ts = Ts;
 nlobj.PredictionHorizon = 10;
 nlobj.ControlHorizon = 1;
@@ -34,14 +34,14 @@ end
 
 %%
 % Validate your prediction model and custom functions, and their Jacobians.
-target_N = [250, 550]';
+target_N = [15000, 30000]';
 
-x0 = [250, 550, 0.014, 0.0, 0.998]';
+x0 = [15000, 30000, 2.5, 0., 0.91]';
 %x0 = [250, 550, 0.0, 0.0, 1.]'; % iniitial condition from the BioRXiv paper
 xk = x0;
 u0 = find_initial_guess(target_N, true_params);
 u0 = u0(1:2)';
-u0 = [0.0015, 0.00135];
+u0 = [0.034, 0.059];
 disp(u0)
 
 validateFcns(nlobj,x0,u0);
@@ -54,14 +54,13 @@ EKF = extendedKalmanFilter(DStateFcn,DMeasFcn,x0);
 EKF.MeasurementNoise = 0.0;
 
 
-Tsteps = 5000;        
+Tsteps = 10000;        
 xHistory = x0';
 uHistory = u0;
 
 lastMV = u0;
 
 
-target_N = [250, 550]';
 Xref = zeros(nlobj.PredictionHorizon, 2);
 Xref(:,1) = target_N(1);
 Xref(:,2) = target_N(2);
@@ -73,15 +72,15 @@ Yspan = 1000;
 nlobj.MV(1).ScaleFactor = Uspan;
 nlobj.MV(2).ScaleFactor = Uspan;
 
-nlobj.OV(1).ScaleFactor = 250;
-nlobj.OV(2).ScaleFactor = 550;
+nlobj.OV(1).ScaleFactor = target_N(1);
+nlobj.OV(2).ScaleFactor = target_N(2);
 
 opts = odeset('NonNegative', [1 2 3 4 5]);
 hbar = waitbar(0,'Simulation Progress');
 options = nlmpcmoveopt;
 costs = [];
 
-% get initial concentration to warm start algorithm
+
 t0 = 300;
 t_col = 600;
 increase = 0.1;

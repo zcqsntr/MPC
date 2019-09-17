@@ -6,9 +6,9 @@ nu = 2; % number of inputs
 
 nlobj = nlmpc(nx,ny,nu);
 
-true_params = {1, 0.5, [480000., 480000.], [520000., 520000.], [0.6, 0.7], [0.00048776, 0.00000102115], [0.00006845928, 0.00006845928], [0.0, 0.0; 0.0, 0.0]};
+true_params = {1, 0.5, [480000., 480000.], [520000., 520000.], [1., 1.1], [0.00048776, 0.00000102115], [0.00006845928, 0.00006845928], [0.0, 0.0; 0.0, 0.0]};
 
-est_params = {1, 0.5, [480000., 480000.], [520000., 520000.], [0.6, 0.7], [0.00048776, 0.00000102115], [0.00006845928, 0.00006845928], [0.0,0.0; 0.0, 0.0]};
+est_params = {1, 0.5, [480000., 480000.], [520000., 520000.], [1., 1.1], [0.00048776, 0.00000102115], [0.00006845928, 0.00006845928], [0.0,0.0; 0.0, 0.0]};
 
 nlobj.Model.StateFcn = @(x,u) chemostat_derivatives_doub(x, u , est_params);
 nlobj.Model.OutputFcn = @(x,u) x(1:2); % add noise here if needed
@@ -16,7 +16,7 @@ nlobj.Model.OutputFcn = @(x,u) x(1:2); % add noise here if needed
 %nlobj_tracking.Jacobian.StateFcn = nlobj.Jacobian.StateFcn;
 
 
-Ts = 60/60;
+Ts = 5/60;
 nlobj.Ts = Ts;
 nlobj.PredictionHorizon = 10;
 nlobj.ControlHorizon = 1;
@@ -34,14 +34,14 @@ end
 
 %%
 % Validate your prediction model and custom functions, and their Jacobians.
-target_N = [15000, 30000]';
+target_N = [20000, 30000]';
 
-x0 = [15000, 30000, 2.5, 0., 0.91]';
+x0 = [20000, 30000, 0.04215, 0.0053, 0.904]';
 %x0 = [250, 550, 0.0, 0.0, 1.]'; % iniitial condition from the BioRXiv paper
 xk = x0;
 u0 = find_initial_guess(target_N, true_params);
 u0 = u0(1:2)';
-u0 = [0.034, 0.059];
+u0 = [0.04215, 0.904];
 disp(u0)
 
 validateFcns(nlobj,x0,u0);
@@ -67,7 +67,7 @@ Xref(:,2) = target_N(2);
 
 % signal spaans for scale factors 
 Uspan = 0.1;
-Yspan = 1000;
+Yspan = 50000;
 
 nlobj.MV(1).ScaleFactor = Uspan;
 nlobj.MV(2).ScaleFactor = Uspan;

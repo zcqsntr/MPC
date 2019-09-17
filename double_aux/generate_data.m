@@ -1,6 +1,6 @@
 
 clear;
-params = {1, 0.5, [480000., 480000.], [520000., 520000.], [0.6, 0.6], [0.00048776, 0.00000102115], [0.00006845928, 0.00006845928], [-0.0001, -0.0001; -0.0001, -0.0001]};
+params = {1, 0.5, [480000., 480000.], [520000., 520000.], [1., 1.1], [0.00048776, 0.00000102115], [0.00006845928, 0.00006845928], [0, 0; 0, 0]};
 
 duration = 100;
 
@@ -15,61 +15,71 @@ u_on = 0.1; % the on state of the controller
 %[t_out, x_out] = ode45(odefun, [0 duration], x, options);
 
 %% RUN STEP BY STEP, THIS OSCILLATES 
-Ts = 3; 
-trajectorys = {50,1};
-input_outputs = {50,1};
-in_outs = [];
-inputs = [];
-outputs = [];
 
-for i = 1:25
-    x0 = [250; 550; 0.01472; 0.0013589; 0.009982];
-    x = x0;
-    xs = [x];
-    uHistory = [];
-    
-    
-    
-    for t = 1:duration/Ts
-        u = randi([0 1], 2,1)*u_on;
-        uHistory = [uHistory u];
-        odefun = @(t, x) chemostat_derivatives_doub(x, u, params);
-        [t_out, x_out] = ode45(odefun, [0 Ts], x, options);
+all_n_mins = [1, 10, 15, 20, 25, 30, 40, 50, 60];
 
-        x = x_out(end, :)';
-        xs = [xs x];
-        input = u;
-        output = x(1:2);
-        
-        inputs = [inputs input];
-        outputs = [outputs output];
-        in_out = [input; output];
-        in_outs = [in_outs in_out];
-    
-        if x(1) < 10 || x(2) < 10
-            break
+all_n_mins = [2,3,4];
+for j = 1:length(all_n_mins)
+    n_mins = all_n_mins(j);
+    disp(n_mins);
+    n_episodes = 30;
+    Ts = n_mins/60; 
+    tmax = round((24*60)/n_mins);
+    trajectorys = {tmax,1};
+    input_outputs = {tmax,1};
+    in_outs = [];
+    inputs = [];
+    outputs = [];
+
+    for i = 1:n_episodes
+        disp(i);
+        x0 = [20000; 30000; 0.; 0; 1];
+        x = x0;
+        xs = [x];
+        uHistory = [];
+
+
+
+        for t = 1:tmax
+            u = randi([0 1], 2,1)*u_on;
+            uHistory = [uHistory u];
+            odefun = @(t, x) chemostat_derivatives_doub(x, u, params);
+            [t_out, x_out] = ode45(odefun, [0 Ts], x, options);
+
+            x = x_out(end, :)';
+            xs = [xs x];
+            input = u;
+            output = x(1:2);
+
+            inputs = [inputs input];
+            outputs = [outputs output];
+            in_out = [input; output];
+            in_outs = [in_outs in_out];
+
+            if x(1) < 10 || x(2) < 10
+                break
+            end 
+
         end 
+        trajectorys{i} = xs';
 
-    end 
-    trajectorys{i} = xs';
-    
-    % store input output 
-    input_outputs{i} = in_outs';
+        % store input output 
+        input_outputs{i} = in_outs';
+    end
+    inputs_N1 = inputs(1, :);
+    outputs_N1 = outputs(1,:);
+    inputs_N2 = inputs(2, :);
+    outputs_N2 = outputs(2,:);
+
+    t_out = 1:length(xs)';
+    Tsteps = t;
+    xHistory = xs';
+
+    save("inputs_N1_"+n_mins+"_mins.mat", 'inputs_N1');
+    save("inputs_N2_"+n_mins+"_mins.mat"', 'inputs_N2');
+    save("outputs_N1_"+n_mins+"_mins.mat", 'outputs_N1');
+    save("outputs_N2_"+n_mins+"_mins.mat", 'outputs_N2');
 end
-inputs_N1 = inputs(1, :);
-outputs_N1 = outputs(1,:);
-inputs_N2 = inputs(2, :);
-outputs_N2 = outputs(2,:);
-
-t_out = 1:length(xs)';
-Tsteps = t;
-xHistory = xs';
-
-%save('inputs_N1.mat', 'inputs_N1');
-%save('inputs_N2.mat', 'inputs_N2');
-%save('outputs_N1.mat', 'outputs_N1');
-%save('outputs_N2.mat', 'outputs_N2');
-
 %% PLOT SOLUTIONS
 
 

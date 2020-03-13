@@ -16,9 +16,8 @@ u_on = 0.1; % the on state of the controller
 
 %% RUN STEP BY STEP, THIS OSCILLATES 
 
-all_n_mins = [1, 10, 15, 20, 25, 30, 40, 50, 60];
+all_n_mins = [1, 2, 3, 4, 5, 10, 20, 30, 40, 50, 60];
 
-all_n_mins = [2,3,4];
 for j = 1:length(all_n_mins)
     n_mins = all_n_mins(j);
     disp(n_mins);
@@ -41,15 +40,20 @@ for j = 1:length(all_n_mins)
 
 
         for t = 1:tmax
-            u = randi([0 1], 2,1)*u_on;
+            u_in = randi([0 1], 2,1)*u_on;
+            
+            % add 10% pump noise 
+            u = normrnd(u_in, u_in*0.1);
+            
             uHistory = [uHistory u];
             odefun = @(t, x) chemostat_derivatives_doub(x, u, params);
             [t_out, x_out] = ode45(odefun, [0 Ts], x, options);
 
             x = x_out(end, :)';
             xs = [xs x];
-            input = u;
-            output = x(1:2);
+            input = u_in;
+            
+            output = normrnd(x(1:2), x(1:2)*0.05); % add 5% measurement noise
 
             inputs = [inputs input];
             outputs = [outputs output];
